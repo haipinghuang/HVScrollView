@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/tvFixCol"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:background="#8e9094"
+        android:padding="3dp"
+        android:singleLine="true"
+        android:textSize="19sp"
+        tools:text="列头" />
+
+    <LinearLayout
+        android:id="@+id/llContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvCol1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#9aa3b6"
+            android:padding="3dp"
+            android:singleLine="true"
+            android:textSize="19sp"
+            tools:text="column1" />
+
+        <TextView
+            android:id="@+id/tvCol2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#a3b8e6"
+            android:padding="3dp"
+            android:singleLine="true"
+            android:textSize="19sp"
+            tools:text="column2" />
+
+        <TextView
+            android:id="@+id/tvCol3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#b8bfcf"
+            android:padding="3dp"
+            android:singleLine="true"
+            android:textSize="19sp"
+            tools:text="column3" />
+
+        <TextView
+            android:id="@+id/tvCol4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#a3b8e6"
+            android:padding="3dp"
+            android:singleLine="true"
+            android:textSize="19sp"
+            tools:text="column4" />
+
+        <TextView
+            android:id="@+id/tvCol5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#b8bfcf"
+            android:padding="3dp"
+            android:singleLine="true"
+            android:textSize="19sp"
+            tools:text="column5" />
+    </LinearLayout>
+
+</LinearLayout>
