@@ -70,6 +70,24 @@
             android:singleLine="true"
             android:textSize="19sp"
             tools:text="column5" />
+        <TextView
+            android:id="@+id/tvCol6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#b8bfcf"
+            android:padding="3dp"
+            android:singleLine="true"
+            android:textSize="19sp"
+            tools:text="column6" />
+        <TextView
+            android:id="@+id/tvCol7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#b8bfcf"
+            android:padding="3dp"
+            android:singleLine="true"
+            android:textSize="19sp"
+            tools:text="column7" />
     </LinearLayout>
 
 </LinearLayout>

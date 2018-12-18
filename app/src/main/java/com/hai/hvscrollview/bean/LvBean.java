@@ -13,8 +13,10 @@ public class LvBean {
     public String movCol4;
     public String movCol5;
     public String movCol6;
+    public String movCol7;
 
-    public LvBean(String fixedCol, String movCol1, String movCol2, String movCol3, String movCol4, String movCol5, String movCol6) {
+
+    public LvBean(String fixedCol, String movCol1, String movCol2, String movCol3, String movCol4, String movCol5, String movCol6, String movCol7) {
         this.fixedCol = fixedCol;
         this.movCol1 = movCol1;
         this.movCol2 = movCol2;
@@ -22,5 +24,18 @@ public class LvBean {
         this.movCol4 = movCol4;
         this.movCol5 = movCol5;
         this.movCol6 = movCol6;
+        this.movCol7 = movCol7;
+    }
+
+    public LvBean(String fixedCol, String movCol1, String movCol2, String movCol3, String movCol4, String movCol5, String movCol6) {
+        this.fixedCol = fixedCol;
+        this.movCol1 = movCol1;
+        this.movCol2 = movCol2;
+        this.movCol3 = movCol3;
+        this.movCol4 = movCol4;
+
+        this.movCol5 = movCol5;
+        this.movCol6 = movCol6;
+
     }
 }

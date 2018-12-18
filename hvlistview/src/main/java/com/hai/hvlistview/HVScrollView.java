@@ -26,14 +26,19 @@
  */
 package com.hai.hvlistview;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.util.ArraySet;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -46,22 +51,26 @@ import java.util.Set;
  * Created by andjdk on 2015/11/3.
  */
 public class HVScrollView extends LinearLayout {
-
+    private static final String TAG = "HVScrollView";
     private float mStartX = 0;
     private int mMoveOffsetX = 0;
     private int mFixX = 0;
+    private int mEndX = 0;
+    private int mHeaderHeight = 75;
+    private int mMovableTotalWidth = 0;
+    private int mTouchSlop = 0;//move事件最小阈值
+    private boolean isAnimate2Int = true;
+
+    private volatile boolean isAnimate;
+    private ValueAnimator animator;
 
     private String[] mScrollHeaderTitle = new String[]{};
     private String mFixedHeaderTitle;
     private ScrollConfig mScrollConfig;
-    private int mHeaderHeight = 75;
     private LinearLayout mScrollHeaderContainer;
     private Set<View> mScrollContainerViews = new ArraySet<>();
-    private int mMovableTotalWidth = 0;
     private ListView mStockListView;
     private BaseAdapter mAdapter;
-
-    private Context context;
 
     public HVScrollView(Context context) {
         this(context, null);
@@ -74,7 +83,9 @@ public class HVScrollView extends LinearLayout {
     public HVScrollView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setOrientation(VERTICAL);
-        this.context = context;
+        ViewConfiguration configuration = ViewConfiguration.get(context);
+        mTouchSlop = configuration.getScaledTouchSlop();
+        Log.d(TAG, "HVScrollView() called with: mTouchSlop = [" + mTouchSlop + "]");
     }
 
     private void initView() {
@@ -166,11 +177,12 @@ public class HVScrollView extends LinearLayout {
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                if (isAnimate && animator != null) animator.cancel();
                 mStartX = ev.getX();
                 break;
             case MotionEvent.ACTION_MOVE:
                 int offsetX = (int) Math.abs(ev.getX() - mStartX);
-                if (offsetX > 30) {
+                if (offsetX > mTouchSlop) {
                     return true;
                 } else {
                     return false;
@@ -183,16 +195,59 @@ public class HVScrollView extends LinearLayout {
     }
 
     private void actionUP() {
-        if (mFixX < 0) {
+        if (mFixX < 0) {//右滑越界
             mFixX = 0;
             mScrollHeaderContainer.scrollTo(0, 0);
             scrollTo(mFixX);
+        } else if (mScrollHeaderContainer.getWidth() + Math.abs(mFixX) > MovableTotalWidth()) {
+            //左滑越界
+            int pointX = MovableTotalWidth() - mScrollHeaderContainer.getWidth();
+            mScrollHeaderContainer.scrollTo(pointX, 0);
+            scrollTo(pointX);
         } else {
-            if (mScrollHeaderContainer.getWidth() + Math.abs(mFixX) > MovableTotalWidth()) {
-                int pointX = MovableTotalWidth() - mScrollHeaderContainer.getWidth();
-                mScrollHeaderContainer.scrollTo(pointX, 0);
-                scrollTo(pointX);
+            if (!isAnimate2Int) return;
+            int avgWidth = ((getMeasuredWidth() - mScrollConfig.getFixedColWidth()) / mScrollConfig.getShowCols());
+            if (mFixX % avgWidth >= (avgWidth / 2)) {
+                mEndX = ((mFixX / avgWidth + 1) * avgWidth);
+            } else {
+                mEndX = ((mFixX / avgWidth) * avgWidth);
             }
+            if (mFixX == mEndX) return;
+            animator = ValueAnimator.ofInt(mFixX, mEndX);
+            animator.setInterpolator(new DecelerateInterpolator());
+//            animator.setDuration(4000);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    int value = (int) animation.getAnimatedValue();
+                    Log.e(TAG, "onAnimationUpdate: value=" + value);
+                    mScrollHeaderContainer.scrollTo(value, 0);
+                    scrollTo(value);
+                    mFixX = value;
+                }
+            });
+            animator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    isAnimate = true;
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    isAnimate = false;
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                    isAnimate = false;
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+
+                }
+            });
+            animator.start();
         }
     }
 
@@ -204,7 +259,7 @@ public class HVScrollView extends LinearLayout {
                 return true;
             case MotionEvent.ACTION_MOVE:
                 int offsetX = (int) Math.abs(event.getX() - mStartX);
-                if (offsetX > 30) {
+                if (offsetX > mTouchSlop) {
                     mMoveOffsetX = (int) (mStartX - event.getX() + mFixX);
                     if (0 > mMoveOffsetX) {
                         mMoveOffsetX = 0;
@@ -214,7 +269,6 @@ public class HVScrollView extends LinearLayout {
                         }
                     }
                     mScrollHeaderContainer.scrollTo(mMoveOffsetX, 0);
-
                     scrollTo(mMoveOffsetX);
                 }
                 break;
@@ -250,6 +304,15 @@ public class HVScrollView extends LinearLayout {
 
         if (mScrollConfig == null) throw new RuntimeException("please init mScrollConfig first");
 
+    }
+
+    /**
+     * 是否滚动到显示一整列
+     *
+     * @param animate2Int
+     */
+    public void setAnimate2Int(boolean animate2Int) {
+        isAnimate2Int = animate2Int;
     }
 
     public void setScrollConfig(ScrollConfig mScrollConfig) {
