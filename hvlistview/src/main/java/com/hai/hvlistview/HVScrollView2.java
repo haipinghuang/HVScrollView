@@ -33,6 +33,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.ArraySet;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -50,7 +51,7 @@ import java.util.Set;
 /**
  * Created by andjdk on 2015/11/3.
  */
-public class HVScrollView extends LinearLayout {
+public class HVScrollView2 extends LinearLayout {
     private static final String TAG = "HVScrollView";
     private float mStartX = 0;
     private int mMoveOffsetX = 0;
@@ -72,19 +73,48 @@ public class HVScrollView extends LinearLayout {
     private ListView mStockListView;
     private BaseAdapter mAdapter;
 
-    public HVScrollView(Context context) {
+    private GestureDetector gestureDetector;
+
+    public HVScrollView2(Context context) {
         this(context, null);
     }
 
-    public HVScrollView(Context context, AttributeSet attrs) {
+    public HVScrollView2(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public HVScrollView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public HVScrollView2(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         setOrientation(VERTICAL);
         ViewConfiguration configuration = ViewConfiguration.get(context);
         mTouchSlop = configuration.getScaledTouchSlop();
+        gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return false;
+            }
+
+            @Override
+            public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+                Log.e(TAG, "onScroll: distanceX=" + distanceX);
+                mMoveOffsetX = (int) (distanceX + mFixX);
+                if (0 > mMoveOffsetX) {
+                    mMoveOffsetX = 0;
+                } else {
+                    if ((mScrollHeaderContainer.getWidth() + mMoveOffsetX) > MovableTotalWidth()) {
+                        mMoveOffsetX = MovableTotalWidth() - mScrollHeaderContainer.getWidth();
+                    }
+                }
+                mScrollHeaderContainer.scrollTo(mMoveOffsetX, 0);
+                scrollTo(mMoveOffsetX);
+                return true;
+            }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                return false;
+            }
+        });
     }
 
     private void initView() {
@@ -252,32 +282,11 @@ public class HVScrollView extends LinearLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                mStartX = event.getX();
-                return true;
-            case MotionEvent.ACTION_MOVE:
-                int offsetX = (int) Math.abs(event.getX() - mStartX);
-                if (offsetX > mTouchSlop) {
-                    mMoveOffsetX = (int) (mStartX - event.getX() + mFixX);
-                    if (0 > mMoveOffsetX) {
-                        mMoveOffsetX = 0;
-                    } else {
-                        if ((mScrollHeaderContainer.getWidth() + mMoveOffsetX) > MovableTotalWidth()) {
-                            mMoveOffsetX = MovableTotalWidth() - mScrollHeaderContainer.getWidth();
-                        }
-                    }
-                    mScrollHeaderContainer.scrollTo(mMoveOffsetX, 0);
-                    scrollTo(mMoveOffsetX);
-                }
-                break;
-            case MotionEvent.ACTION_UP:
-                mFixX = mMoveOffsetX; // mFixX + (int) ((int) ev.getX() - mStartX)
-                actionUP();
-                break;
+        boolean flag = gestureDetector.onTouchEvent(event);
+        if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+            mFixX = mMoveOffsetX;
         }
-
-        return super.onTouchEvent(event);
+        return flag || super.onTouchEvent(event);
     }
 
     private void scrollTo(int x) {

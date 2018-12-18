@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.hai.hvlistview.HVScrollView;
+import com.hai.hvlistview.HVScrollView2;
 import com.hai.hvlistview.ScrollConfig;
 import com.hai.hvscrollview.adapter.MyBaseAdapter;
 import com.hai.hvscrollview.bean.LvBean;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HScrollListViewActivity extends AppCompatActivity {
-    HVScrollView listView;
+    HVScrollView2 listView;
     List<LvBean> list = new ArrayList();
 
     @Override
@@ -51,7 +51,7 @@ public class HScrollListViewActivity extends AppCompatActivity {
             }
         });
         listView.setHeaderListData("header", new String[]{"列表1", "列表2", "列表3", "列表4", "列表5", "列表6", "列表7"});
-        listView.setAnimate2Int(true);
+        listView.setAnimate2Int(false);
         listView.setAdapter(new MyBaseAdapter<LvBean>(this, list) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
