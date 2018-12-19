@@ -31,6 +31,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.util.ArraySet;
+import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -48,7 +49,9 @@ import java.util.Set;
 
 
 /**
- * Created by andjdk on 2015/11/3.
+ * 含有多列内容的listView可以横向滚动，类似同花顺自选股滚动效果
+ * Created by huanghp on 2018/12/19.
+ * Email h1132760021@sina.com
  */
 public class HVScrollView extends LinearLayout {
     private static final String TAG = "HVScrollView";
@@ -70,6 +73,8 @@ public class HVScrollView extends LinearLayout {
     private LinearLayout mScrollHeaderContainer;
     private Set<View> mScrollContainerViews = new ArraySet<>();
     private ListView mStockListView;
+    private ViewPager mViewPage;
+
     private BaseAdapter mAdapter;
 
     public HVScrollView(Context context) {
@@ -90,6 +95,7 @@ public class HVScrollView extends LinearLayout {
     private void initView() {
         removeAllViews();//第二次调用的时候移除之前添加的View
         mMovableTotalWidth = 0;
+        mFixX = 0;
 
         LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         addView(buildHeadLayout(), layoutParams);
@@ -103,6 +109,7 @@ public class HVScrollView extends LinearLayout {
         addListHeaderTextView(mFixedHeaderTitle, mScrollConfig.getFixedColWidth(), headLayout);
 
         mScrollHeaderContainer = new LinearLayout(getContext());
+        //默认以this.width==屏幕宽度;
         int widthPixels = getResources().getDisplayMetrics().widthPixels;
         //每个滚动header的width
         double width = 1.0 * (widthPixels - mScrollConfig.getFixedColWidth()) / mScrollConfig.getShowCols();
@@ -180,12 +187,21 @@ public class HVScrollView extends LinearLayout {
                 mStartX = ev.getX();
                 break;
             case MotionEvent.ACTION_MOVE:
-                int offsetX = (int) Math.abs(ev.getX() - mStartX);
-                if (offsetX > mTouchSlop) {
-                    return true;
-                } else {
-                    return false;
-                }
+                float distanceX = ev.getX() - mStartX;
+//                if (distanceX < 0) {//向左滑
+//                    if (mViewPage != null) {
+//                        mViewPage.requestDisallowInterceptTouchEvent((mScrollHeaderContainer.getWidth() + Math.abs(mFixX)) >= movableTotalWidth());
+//                    }
+//                } else if ((distanceX > 0)) {//向右滑
+//                    if (mViewPage != null) {
+//                        mViewPage.requestDisallowInterceptTouchEvent(mFixX > 0);
+//                    }
+//                }
+                getParent().requestDisallowInterceptTouchEvent(true);
+//                if (mViewPage != null && Math.abs(distanceX) > 5) {
+//                    mViewPage.requestDisallowInterceptTouchEvent(true);
+//                }
+                return Math.abs(distanceX) > mTouchSlop;
             case MotionEvent.ACTION_UP:
                 actionUP();
                 break;
@@ -198,9 +214,9 @@ public class HVScrollView extends LinearLayout {
             mFixX = 0;
             mScrollHeaderContainer.scrollTo(0, 0);
             scrollTo(mFixX);
-        } else if (mScrollHeaderContainer.getWidth() + Math.abs(mFixX) > MovableTotalWidth()) {
+        } else if (mScrollHeaderContainer.getWidth() + Math.abs(mFixX) > movableTotalWidth()) {
             //左滑越界
-            int pointX = MovableTotalWidth() - mScrollHeaderContainer.getWidth();
+            int pointX = movableTotalWidth() - mScrollHeaderContainer.getWidth();
             mScrollHeaderContainer.scrollTo(pointX, 0);
             scrollTo(pointX);
         } else {
@@ -263,8 +279,8 @@ public class HVScrollView extends LinearLayout {
                     if (0 > mMoveOffsetX) {
                         mMoveOffsetX = 0;
                     } else {
-                        if ((mScrollHeaderContainer.getWidth() + mMoveOffsetX) > MovableTotalWidth()) {
-                            mMoveOffsetX = MovableTotalWidth() - mScrollHeaderContainer.getWidth();
+                        if ((mScrollHeaderContainer.getWidth() + mMoveOffsetX) > movableTotalWidth()) {
+                            mMoveOffsetX = movableTotalWidth() - mScrollHeaderContainer.getWidth();
                         }
                     }
                     mScrollHeaderContainer.scrollTo(mMoveOffsetX, 0);
@@ -274,6 +290,7 @@ public class HVScrollView extends LinearLayout {
             case MotionEvent.ACTION_UP:
                 mFixX = mMoveOffsetX; // mFixX + (int) ((int) ev.getX() - mStartX)
                 actionUP();
+                getParent().requestDisallowInterceptTouchEvent(false);
                 break;
         }
 
@@ -288,7 +305,8 @@ public class HVScrollView extends LinearLayout {
         }
     }
 
-    private int MovableTotalWidth() {
+
+    private int movableTotalWidth() {
         if (0 == mMovableTotalWidth) {
             int rightWidth = getMeasuredWidth() - mScrollConfig.getFixedColWidth();
             mMovableTotalWidth += (rightWidth / mScrollConfig.getShowCols() * mScrollConfig.getShowViewIds().length);
@@ -301,12 +319,14 @@ public class HVScrollView extends LinearLayout {
         mFixedHeaderTitle = fixedHeaderTitle;
         this.mScrollHeaderTitle = scrollHeaderTitle;
 
-        if (mScrollConfig == null) throw new RuntimeException("please init mScrollConfig first");
-
+        if (mScrollConfig == null)
+            throw new IllegalArgumentException("please init mScrollConfig first");
+        if (mScrollConfig.getShowViewIds().length != scrollHeaderTitle.length)
+            throw new IllegalArgumentException("mScrollConfig.getShowViewIds().length != scrollHeaderTitle.length");
     }
 
     /**
-     * 是否滚动到显示一整列
+     * 手指抬起时是否自动滚动到一列的倍数距离
      *
      * @param animate2Int
      */
@@ -316,6 +336,10 @@ public class HVScrollView extends LinearLayout {
 
     public void setScrollConfig(ScrollConfig mScrollConfig) {
         this.mScrollConfig = mScrollConfig;
+    }
+
+    public void setViewPage(ViewPager mViewPage) {
+        this.mViewPage = mViewPage;
     }
 }
 

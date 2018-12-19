@@ -4,7 +4,7 @@ import android.support.annotation.IdRes;
 
 public interface ScrollConfig {
     /**
-     * 固定header列宽度
+     * 固定header列的宽度
      */
     int getFixedColWidth();
 
