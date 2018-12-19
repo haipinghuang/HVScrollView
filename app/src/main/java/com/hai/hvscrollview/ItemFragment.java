@@ -1,15 +1,17 @@
 package com.hai.hvscrollview;
 
-import android.content.Context;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.util.TypedValue;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.hai.hvlistview.HVScrollView;
-import com.hai.hvlistview.HVScrollView2;
 import com.hai.hvlistview.ScrollConfig;
 import com.hai.hvscrollview.adapter.MyBaseAdapter;
 import com.hai.hvscrollview.bean.LvBean;
@@ -17,19 +19,41 @@ import com.hai.hvscrollview.bean.LvBean;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HScrollListViewActivity extends AppCompatActivity {
-    HVScrollView listView;
+/**
+ * fileDesc
+ * Created by huanghp on 2018/12/19.
+ * Email h1132760021@sina.com
+ */
+public class ItemFragment extends Fragment {
+    HVScrollView hvScrollView;
     List<LvBean> list = new ArrayList();
+    String title;
+    ViewPager mViewPage;
+
+    public static ItemFragment newInstance() {
+        Bundle args = new Bundle();
+        ItemFragment fragment = new ItemFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_hscroll_list_view);
-
+        title = getArguments().getString("title");
         initData();
+    }
 
-        listView = findViewById(R.id.listView);
-        listView.setScrollConfig(new ScrollConfig() {
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.item_fragment, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        hvScrollView = view.findViewById(R.id.scrollView);
+        hvScrollView.setScrollConfig(new ScrollConfig() {
             @Override
             public int getFixedColWidth() {
                 float value = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics());
@@ -51,9 +75,10 @@ public class HScrollListViewActivity extends AppCompatActivity {
                 return R.id.llContainer;
             }
         });
-        listView.setHeaderListData("header", new String[]{"列表1", "列表2", "列表3", "列表4", "列表5", "列表6", "列表7"});
-        listView.setAnimate2Int(true);
-        listView.setAdapter(new MyBaseAdapter<LvBean>(this, list) {
+        hvScrollView.setHeaderListData(title, new String[]{"列表1", "列表2", "列表3", "列表4", "列表5", "列表6", "列表7"});
+        hvScrollView.setAnimate2Int(false);
+        hvScrollView.setViewPage(mViewPage);
+        hvScrollView.setAdapter(new MyBaseAdapter<LvBean>(getContext(), list) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
@@ -71,22 +96,17 @@ public class HScrollListViewActivity extends AppCompatActivity {
                 return convertView;
             }
         });
+        super.onViewCreated(view, savedInstanceState);
     }
 
     void initData() {
         for (int i = 0; i < 1500; i++) {
-            list.add(new LvBean(" header" + i, "mov1-" + i, "mov2-" + i, "mov3-" + i
-                    , "mov4-" + i, "mov5-" + i, "mov6-" + i, "mov7-" + i));
+            list.add(new LvBean(title + i, title + "mov1-" + i, title + "mov2-" + i, title + "mov3-" + i
+                    , title + "mov4-" + i, title + "mov5-" + i, title + "mov6-" + i, title + "mov7-" + i));
         }
     }
 
-    /**
-     * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
-     */
-    public static int dip2px(Context context, float dpValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale + 0.5f);
+    public void setViewPage(ViewPager mViewPage) {
+        this.mViewPage = mViewPage;
     }
-
-
 }

@@ -47,9 +47,10 @@ import android.widget.TextView;
 
 import java.util.Set;
 
-
 /**
- * Created by andjdk on 2015/11/3.
+ * 此类未实现功能，还有错误，连基本的滚动手势都实现有误
+ * Created by huanghp on 2018/12/19.
+ * Email h1132760021@sina.com
  */
 public class HVScrollView2 extends LinearLayout {
     private static final String TAG = "HVScrollView";
@@ -59,8 +60,10 @@ public class HVScrollView2 extends LinearLayout {
     private int mEndX = 0;
     private int mHeaderHeight = 75;
     private int mMovableTotalWidth = 0;
-    private int mTouchSlop = 0;//move事件最小阈值
     private boolean isAnimate2Int = true;
+
+    private int mTouchSlop = 0;//move事件最小阈值
+    private int flingVelocity;
 
     private volatile boolean isAnimate;
     private ValueAnimator animator;
@@ -88,25 +91,31 @@ public class HVScrollView2 extends LinearLayout {
         setOrientation(VERTICAL);
         ViewConfiguration configuration = ViewConfiguration.get(context);
         mTouchSlop = configuration.getScaledTouchSlop();
+        flingVelocity = configuration.getScaledMinimumFlingVelocity();
+
         gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDown(MotionEvent e) {
-                return false;
+                return true;
             }
 
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-                Log.e(TAG, "onScroll: distanceX=" + distanceX);
+                //此处第一次滚动的distanceX和手势抬起后第二次滚动后的distanceX值相差巨大
+                //此处的实现逻辑有误
                 mMoveOffsetX = (int) (distanceX + mFixX);
                 if (0 > mMoveOffsetX) {
                     mMoveOffsetX = 0;
                 } else {
                     if ((mScrollHeaderContainer.getWidth() + mMoveOffsetX) > MovableTotalWidth()) {
+                        Log.e(TAG, "onScroll: (mScrollHeaderContainer.getWidth() + mMoveOffsetX) > MovableTotalWidth()");
                         mMoveOffsetX = MovableTotalWidth() - mScrollHeaderContainer.getWidth();
                     }
                 }
+                Log.e(TAG, "onScroll:distanceX=" + distanceX + "  |mFixX=" + mFixX + "  |mMoveOffsetX=" + mMoveOffsetX);
                 mScrollHeaderContainer.scrollTo(mMoveOffsetX, 0);
                 scrollTo(mMoveOffsetX);
+                mFixX = mMoveOffsetX;
                 return true;
             }
 
@@ -217,7 +226,7 @@ public class HVScrollView2 extends LinearLayout {
                     return false;
                 }
             case MotionEvent.ACTION_UP:
-                actionUP();
+//                actionUP();
                 break;
         }
         return super.onInterceptTouchEvent(ev);
@@ -286,7 +295,7 @@ public class HVScrollView2 extends LinearLayout {
         if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
             mFixX = mMoveOffsetX;
         }
-        return flag || super.onTouchEvent(event);
+        return super.onTouchEvent(event);
     }
 
     private void scrollTo(int x) {
