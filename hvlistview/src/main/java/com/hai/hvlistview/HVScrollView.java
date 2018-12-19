@@ -264,7 +264,7 @@ public class HVScrollView extends LinearLayout {
             case MotionEvent.ACTION_UP:
                 mFixX = mMoveOffsetX; // mFixX + (int) ((int) ev.getX() - mStartX)
                 actionUP();
-                getParent().requestDisallowInterceptTouchEvent(false);
+//                getParent().requestDisallowInterceptTouchEvent(false);
                 break;
         }
 
